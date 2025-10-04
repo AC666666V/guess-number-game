@@ -6,12 +6,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv
 version = 1.0
 
-# 可选：应用图标（如需添加，将图片放在根目录并取消注释）
-# icon.filename = %(source.dir)s/icon.png
-
-android.permissions = 
-
 [android]
+# 严格匹配工作流中安装的版本（必须一致！）
 sdk = 30
 build-tools = 30.0.3
 min-sdk = 21
@@ -24,7 +20,7 @@ key.alias.password = android
 android.arch = armeabi-v7a,arm64-v8a
 
 [buildozer]
-log_level = 2
+log_level = 2  # 详细日志，方便排查问题
 android.accept_sdk_license = True
 cache_dir = .buildozer/cache
 
