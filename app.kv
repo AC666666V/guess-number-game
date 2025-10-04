@@ -1,95 +1,133 @@
-#:import rgba kivy.utils.get_color_from_hex
-
 <GameLayout>:
     orientation: 'vertical'
     padding: dp(15)
-    spacing: dp(20)
+    spacing: dp(15)
 
-    # 游戏标题
-    Label:
-        text: "猜数字小游戏"
-        font_size: dp(32)
-        color: rgba('#2196F3')  # 蓝色
-        size_hint_y: None
-        height: dp(80)
-        font_name: 'Chinese'
-        bold: True
-        halign: 'center'
-        valign: 'middle'
-        text_size: self.size
-
-    # 提示信息区域
-    Label:
-        id: hint_label
-        text: "我想了一个1-100的数字，猜猜看？"
-        font_size: dp(20)
-        color: rgba('#424242')  # 深灰色
-        size_hint_y: None
-        height: dp(100)
-        halign: 'center'
-        valign: 'middle'
-        text_size: self.size
-        padding: [dp(15), dp(15)]
-        font_name: 'Chinese'
-
-    # 数字输入框
-    TextInput:
-        id: number_input
-        hint_text: "请输入1-100之间的数字"
-        input_type: 'number'
-        font_size: dp(22)
-        size_hint_y: None
-        height: dp(60)
-        multiline: False
-        padding: [dp(15), dp(15)]
-        font_name: 'Chinese'
-        background_color: rgba('#FFFFFF')
-        foreground_color: rgba('#000000')
-
-    # 按钮布局
+    # 标题栏（带背景和阴影）
     BoxLayout:
         size_hint_y: None
-        height: dp(70)
-        spacing: dp(15)
-        
-        Button:
-            text: "提交猜测"
-            font_size: dp(20)
-            background_color: rgba('#4CAF50')  # 绿色
-            background_normal: ''
-            on_press: root.check_guess()
-            font_name: 'Chinese'
-            color: rgba('#FFFFFF')  # 白色文字
-            
-        Button:
-            text: "重新开始"
-            font_size: dp(20)
-            background_color: rgba('#FF9800')  # 橙色
-            background_normal: ''
-            on_press: root.reset_game()
-            font_name: 'Chinese'
-            color: rgba('#FFFFFF')  # 白色文字
+        height: dp(55)
+        canvas.before:
+            Color:
+                rgba: 0.1, 0.3, 0.8, 1  # 深蓝色背景
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Label:
+            text: "猜数字小游戏"
+            font_size: sp(20)
+            color: 1, 1, 1, 1  # 白色文字
+            font_name: 'Chinese' if app.chinese_font_registered else 'Roboto'
+            halign: 'center'
+            valign: 'middle'
 
-    # 历史记录标题
-    Label:
-        text: "猜测历史"
-        font_size: dp(22)
+    # 提示区域（带圆角和浅色背景）
+    BoxLayout:
         size_hint_y: None
-        height: dp(45)
-        color: rgba('#666666')  # 灰色
-        font_name: 'Chinese'
-        bold: True
-        halign: 'left'
+        height: dp(80)
+        padding: dp(10)
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.97, 1, 1  # 浅蓝背景
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(8), ]
+        Label:
+            id: hint_label
+            text: "我想了一个1-100的数字，猜猜看？"
+            font_size: sp(16)
+            font_name: 'Chinese' if app.chinese_font_registered else 'Roboto'
+            color: 0.2, 0.2, 0.2, 1  # 深灰文字
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width - dp(20), self.height  # 自动换行
 
-    # 历史记录显示区域
-    Label:
-        id: history_label
-        text: "暂无猜测记录"
-        font_size: dp(18)
-        text_size: self.width, None
-        halign: 'left'
-        valign: 'top'
-        padding: [dp(15), dp(15)]
-        size_hint_y: 1.0
-        font_name: 'Chinese'
-        color: rgba('#424242')  # 深灰色
+    # 输入框（大尺寸，带边框）
+    TextInput:
+        id: number_input
+        hint_text: "输入1-100之间的数字"
+        hint_text_color: 0.5, 0.5, 0.5, 1
+        input_type: 'number'
+        font_size: sp(18)
+        size_hint_y: None
+        height: dp(55)
+        multiline: False
+        padding: [dp(15), dp(10)]
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1  # 白色背景
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(6), ]
+            Color:
+                rgba: 0.7, 0.7, 0.7, 1  # 浅灰边框
+            Line:
+                rounded_rectangle: self.pos[0], self.pos[1], self.size[0], self.size[1], dp(6)
+                width: dp(1)
+
+    # 提交按钮（大尺寸，点击反馈）
+    Button:
+        text: "提交猜测"
+        font_size: sp(18)
+        font_name: 'Chinese' if app.chinese_font_registered else 'Roboto'
+        background_color: 0.2, 0.6, 0.3, 1  # 绿色
+        background_normal: ''  # 取消默认背景
+        color: 1, 1, 1, 1
+        size_hint_y: None
+        height: dp(55)
+        radius: [dp(8), ]
+        on_press:
+            root.check_guess()
+            self.background_color = 0.15, 0.5, 0.25, 1  # 点击时变深
+        on_release:
+            self.background_color = 0.2, 0.6, 0.3, 1  # 松开恢复
+
+    # 历史记录区域（带标题）
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: None
+        height: dp(150)
+        Label:
+            text: "最近猜测"
+            font_size: sp(16)
+            font_name: 'Chinese' if app.chinese_font_registered else 'Roboto'
+            color: 0.3, 0.3, 0.3, 1
+            size_hint_y: None
+            height: dp(30)
+        ScrollView:
+            Label:
+                id: history_label
+                text: "暂无猜测记录"
+                font_size: sp(14)
+                font_name: 'Chinese' if app.chinese_font_registered else 'Roboto'
+                color: 0.4, 0.4, 0.4, 1
+                size_hint_y: None
+                height: self.texture_size[1]  # 自适应高度
+                halign: 'left'
+
+    # 统计信息（最佳成绩+本次次数）
+    BoxLayout:
+        size_hint_y: None
+        height: dp(60)
+        padding: dp(10)
+        canvas.before:
+            Color:
+                rgba: 0.98, 0.98, 0.98, 1  # 浅灰背景
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(6), ]
+        Label:
+            id: stats_label
+            text: "本次游戏: 0 次\n最佳成绩: - 次"
+            font_size: sp(15)
+            font_name: 'Chinese' if app.chinese_font_registered else 'Roboto'
+            color: 0.2, 0.2, 0.6, 1  # 蓝色文字
+            halign: 'center'
+
+    # 底部留白（适配手机底部导航栏）
+    Widget:
+        size_hint_y: None
+        height: dp(10)
