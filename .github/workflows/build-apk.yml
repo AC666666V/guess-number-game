@@ -38,9 +38,7 @@ jobs:
           pip install buildozer  # 用于构建APK的工具
           pip install cython  # 解决之前的"cython未找到"错误
 
-      # 步骤5：初始化buildozer（生成配置文件，若项目中已有可省略）
-      - name: Initialize buildozer
-        run: buildozer init
+
 
       # 步骤6：构建Android APK（debug版本）
       - name: Build APK
