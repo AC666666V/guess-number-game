@@ -1,28 +1,22 @@
 [app]
+# 应用名称（自定义）
 title = 猜数字游戏
-package.name = guessnumberpro
-package.domain = org.guessgamepro
-source.dir = .
-# 包含根目录的字体文件（如果存在）
-source.include_exts = py,kv,ttf,png,jpg
-version = 1.2
-# 依赖库：确保安卓端字体渲染正常
-requirements = python3,kivy==2.3.1,pyjnius==1.5.0
-orientation = portrait
-# 安卓主题：避免状态栏遮挡文字
-android:theme = @android:style/Theme.NoTitleBar.Fullscreen
-
-[buildozer]
-log_level = 2
-warn_on_root = 1
+# 应用包名（格式：域名.公司.应用，全小写）
+package.name = guessnumber
+# 域名（自定义，确保全小写）
+package.domain = org.example
 
 [android]
-# 适配32/64位安卓设备
-android.archs = armeabi-v7a,arm64-v8a
-android.minapi = 21
-android.targetapi = 34
-# 移除了对缺失字体文件的引用
-# 测试版无需签名
-android.sign = False
-# 保存最佳成绩（可选）
-android.allow_backup = True
+# 使用稳定的Android SDK版本（30兼容性最佳）
+sdk = 30
+# 对应SDK的构建工具版本（必须与SDK版本匹配）
+build-tools = 30.0.3
+# 最小支持的Android版本（可选，如21支持Android 5.0+）
+min-sdk = 21
+# 目标Android版本（与SDK版本一致）
+target-sdk = 30
+# 签名配置（调试版可省略，发布版需配置）
+# key.store = ~/.android/debug.keystore
+# key.store.password = android
+# key.alias = androiddebugkey
+# key.alias.password = android
