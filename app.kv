@@ -1,0 +1,82 @@
+#:import rgba kivy.utils.get_color_from_hex
+
+<GameLayout>:
+    orientation: 'vertical'
+    padding: dp(20)
+    spacing: dp(15)
+
+    # 游戏标题
+    Label:
+        text: "猜数字小游戏"
+        font_size: dp(28)
+        color: rgba('#3388cc')
+        size_hint_y: None
+        height: dp(60)
+        font_name: 'Chinese'
+
+    # 提示信息区域
+    Label:
+        id: hint_label
+        text: "我想了一个1-100的数字，猜猜看？"
+        font_size: dp(18)
+        size_hint_y: None
+        height: dp(80)
+        halign: 'center'
+        valign: 'middle'
+        text_size: self.size
+        padding: [dp(10), dp(10)]
+        font_name: 'Chinese'
+
+    # 数字输入框
+    TextInput:
+        id: number_input
+        hint_text: "请输入1-100之间的数字"
+        input_type: 'number'
+        font_size: dp(20)
+        size_hint_y: None
+        height: dp(50)
+        multiline: False
+        padding: [dp(10), dp(10)]
+        font_name: 'Chinese'
+
+    # 按钮布局
+    BoxLayout:
+        size_hint_y: None
+        height: dp(60)
+        spacing: dp(10)
+        
+        Button:
+            text: "提交猜测"
+            font_size: dp(18)
+            background_color: rgba('#4CAF50')
+            on_press: root.check_guess()
+            font_name: 'Chinese'
+        
+        Button:
+            text: "重新开始"
+            font_size: dp(18)
+            background_color: rgba('#FF9800')
+            on_press: root.reset_game()
+            font_name: 'Chinese'
+
+    # 历史记录标题
+    Label:
+        text: "猜测历史"
+        font_size: dp(20)
+        size_hint_y: None
+        height: dp(40)
+        color: rgba('#666666')
+        font_name: 'Chinese'
+
+    # 历史记录显示区域
+    Label:
+        id: history_label
+        text: "暂无猜测记录"
+        font_size: dp(16)
+        text_size: self.width, None
+        halign: 'left'
+        valign: 'top'
+        padding: [dp(10), dp(10)]
+        # 使用ScrollView来包含历史记录
+        size_hint_y: 1.0
+        font_name: 'Chinese'
