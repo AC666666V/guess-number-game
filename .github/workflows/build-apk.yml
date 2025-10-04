@@ -1,6 +1,5 @@
-name: 构建猜数字游戏APK
+name: 构建猜数字游戏APK（修复aidl缺失）
 
-# 触发条件：推送或PR到主分支时运行
 on:
   push:
     branches: [ "main", "master" ]
@@ -10,49 +9,77 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40  # 延长超时时间，避免构建中断
+    timeout-minutes: 60  # 延长超时，确保工具下载完成
 
     steps:
-      # 步骤1：检出仓库代码
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # 步骤2：配置Python环境（与项目依赖匹配）
-      - name: 配置Python
+      - name: 配置Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      # 步骤3：安装系统级依赖（Android构建必需）
-      - name: 安装系统依赖
+      - name: 安装系统依赖（含Android构建基础工具）
         run: |
           sudo apt-get update
+          # 必须安装的系统工具：Java、解压、网络工具等
           sudo apt-get install -y openjdk-11-jdk zlib1g-dev libncurses5-dev \
             libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev \
-            wget unzip
+            wget unzip curl  # 确保curl和unzip存在，用于下载和解压SDK
 
-      # 步骤4：安装Python依赖（Buildozer、Cython、Kivy等）
-      - name: 安装Python依赖
+      - name: 安装Python依赖（指定稳定版本）
         run: |
           python -m pip install --upgrade pip
           pip install buildozer==1.5.0 cython==0.29.36 kivy==2.2.1
 
-      # 步骤5：初始化Android环境并接受许可证（解决许可问题）
-      - name: 初始化Android环境并接受许可
+      - name: 初始化Android SDK环境（强制下载基础组件）
         run: |
-          # 预运行Buildozer，触发SDK基础文件下载
+          # 预运行buildozer触发SDK目录创建（忽略临时错误）
           buildozer android debug 2>/dev/null || true
-          # 强制创建许可证文件
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c5" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          echo -e "\nd56f5187479451eabf01fb78af6dfcb131a6481e" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          
+          # 定义SDK路径和需要的版本（与buildozer.spec一致）
+          SDK_PATH="$HOME/.buildozer/android/platform/android-sdk"
+          BUILD_TOOLS_VERSION="30.0.3"
+          SDK_VERSION="30"
+          
+          # 创建SDK工具目录（若不存在）
+          mkdir -p "$SDK_PATH/cmdline-tools/latest/bin"
+          
+          # 下载Android命令行工具（用于安装build-tools）
+          wget -q "https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip" -O sdk-tools.zip
+          unzip -q sdk-tools.zip -d "$SDK_PATH/cmdline-tools/"
+          mv "$SDK_PATH/cmdline-tools/cmdline-tools" "$SDK_PATH/cmdline-tools/latest"  # 重命名为latest，符合SDK要求
 
-      # 步骤6：正式构建APK
-      - name: 构建APK
-        run: buildozer android debug --accept-licenses
+      - name: 强制安装build-tools（含aidl）和对应SDK
+        run: |
+          SDK_PATH="$HOME/.buildozer/android/platform/android-sdk"
+          BUILD_TOOLS_VERSION="30.0.3"
+          SDK_VERSION="30"
+          
+          # 进入SDK工具目录
+          cd "$SDK_PATH/cmdline-tools/latest/bin"
+          
+          # 自动接受所有许可证
+          yes | ./sdkmanager --licenses
+          
+          # 强制安装指定版本的build-tools（含aidl）和平台
+          yes | ./sdkmanager "build-tools;$BUILD_TOOLS_VERSION" "platforms;android-$SDK_VERSION"
+          
+          # 验证aidl是否存在（调试用）
+          if [ -f "$SDK_PATH/build-tools/$BUILD_TOOLS_VERSION/aidl" ]; then
+            echo "aidl已找到：$SDK_PATH/build-tools/$BUILD_TOOLS_VERSION/aidl"
+          else
+            echo "错误：aidl仍未找到！"
+            exit 1
+          fi
 
-      # 步骤7：上传APK产物
-      - name: 上传APK
+      - name: 清理旧缓存并构建APK
+        run: |
+          buildozer android clean  # 清理旧构建文件
+          buildozer android debug --accept-licenses  # 带许可参数构建
+
+      - name: 上传APK产物
         uses: actions/upload-artifact@v4
         with:
           name: 猜数字游戏APK
