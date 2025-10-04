@@ -2,29 +2,34 @@
 
 <GameLayout>:
     orientation: 'vertical'
-    padding: dp(20)
-    spacing: dp(15)
+    padding: dp(15)
+    spacing: dp(20)
 
     # 游戏标题
     Label:
         text: "猜数字小游戏"
-        font_size: dp(28)
-        color: rgba('#3388cc')
+        font_size: dp(32)
+        color: rgba('#2196F3')  # 蓝色
         size_hint_y: None
-        height: dp(60)
+        height: dp(80)
         font_name: 'Chinese'
+        bold: True
+        halign: 'center'
+        valign: 'middle'
+        text_size: self.size
 
     # 提示信息区域
     Label:
         id: hint_label
         text: "我想了一个1-100的数字，猜猜看？"
-        font_size: dp(18)
+        font_size: dp(20)
+        color: rgba('#424242')  # 深灰色
         size_hint_y: None
-        height: dp(80)
+        height: dp(100)
         halign: 'center'
         valign: 'middle'
         text_size: self.size
-        padding: [dp(10), dp(10)]
+        padding: [dp(15), dp(15)]
         font_name: 'Chinese'
 
     # 数字输入框
@@ -32,51 +37,59 @@
         id: number_input
         hint_text: "请输入1-100之间的数字"
         input_type: 'number'
-        font_size: dp(20)
+        font_size: dp(22)
         size_hint_y: None
-        height: dp(50)
+        height: dp(60)
         multiline: False
-        padding: [dp(10), dp(10)]
+        padding: [dp(15), dp(15)]
         font_name: 'Chinese'
+        background_color: rgba('#FFFFFF')
+        foreground_color: rgba('#000000')
 
     # 按钮布局
     BoxLayout:
         size_hint_y: None
-        height: dp(60)
-        spacing: dp(10)
+        height: dp(70)
+        spacing: dp(15)
         
         Button:
             text: "提交猜测"
-            font_size: dp(18)
-            background_color: rgba('#4CAF50')
+            font_size: dp(20)
+            background_color: rgba('#4CAF50')  # 绿色
+            background_normal: ''
             on_press: root.check_guess()
             font_name: 'Chinese'
-        
+            color: rgba('#FFFFFF')  # 白色文字
+            
         Button:
             text: "重新开始"
-            font_size: dp(18)
-            background_color: rgba('#FF9800')
+            font_size: dp(20)
+            background_color: rgba('#FF9800')  # 橙色
+            background_normal: ''
             on_press: root.reset_game()
             font_name: 'Chinese'
+            color: rgba('#FFFFFF')  # 白色文字
 
     # 历史记录标题
     Label:
         text: "猜测历史"
-        font_size: dp(20)
+        font_size: dp(22)
         size_hint_y: None
-        height: dp(40)
-        color: rgba('#666666')
+        height: dp(45)
+        color: rgba('#666666')  # 灰色
         font_name: 'Chinese'
+        bold: True
+        halign: 'left'
 
     # 历史记录显示区域
     Label:
         id: history_label
         text: "暂无猜测记录"
-        font_size: dp(16)
+        font_size: dp(18)
         text_size: self.width, None
         halign: 'left'
         valign: 'top'
-        padding: [dp(10), dp(10)]
-        # 使用ScrollView来包含历史记录
+        padding: [dp(15), dp(15)]
         size_hint_y: 1.0
         font_name: 'Chinese'
+        color: rgba('#424242')  # 深灰色

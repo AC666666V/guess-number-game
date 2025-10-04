@@ -98,9 +98,9 @@ class GameLayout(BoxLayout):
         """显示弹窗"""
         # 根据是否有中文字体决定使用哪种字体
         if chinese_font_registered:
-            popup_content = Label(text=content, font_size=18, font_name='Chinese')
+            popup_content = Label(text=content, font_size=20, font_name='Chinese')
         else:
-            popup_content = Label(text=content, font_size=18)
+            popup_content = Label(text=content, font_size=20)
             
         popup = Popup(
             title=title,
