@@ -1,6 +1,6 @@
 name: Build Android APK
 
-# 触发条件：推送或PR到main/master分支时运行
+# 触发条件：推送或PR到主分支时运行
 on:
   push:
     branches: [ "main", "master" ]
@@ -9,44 +9,42 @@ on:
 
 jobs:
   build:
-    # 运行环境：Ubuntu最新版
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # 使用Ubuntu最新环境
 
     steps:
-      # 步骤1：检出仓库代码
+      # 步骤1：检出仓库代码（最新版Action）
       - name: Checkout code
-        uses: actions/checkout@v4  # 使用最新稳定版
+        uses: actions/checkout@v4
 
-      # 步骤2：配置Python环境（buildozer依赖Python）
+      # 步骤2：配置Python环境（兼容buildozer的3.9版本）
       - name: Set up Python
-        uses: actions/setup-python@v5  # 最新版
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'  # 推荐3.8+，兼容buildozer
+          python-version: '3.9'
 
       # 步骤3：安装系统级依赖（Android构建必需）
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          # 安装Java（Android构建需要）、zlib等依赖
+          # 安装Java（Android构建依赖）、压缩库、SSL库等
           sudo apt-get install -y openjdk-11-jdk zlib1g-dev libncurses5-dev \
-            libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
+            libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev \
+            wget unzip  # 增加unzip用于解压Android工具
 
-      # 步骤4：安装Python依赖（buildozer、cython等）
+      # 步骤4：安装Python依赖（含cython，解决缺失问题）
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install buildozer  # 用于构建APK的工具
-          pip install cython  # 解决之前的"cython未找到"错误
+          pip install buildozer  # 构建工具
+          pip install cython     # 必需依赖，避免"未找到"错误
 
-
-
-      # 步骤6：构建Android APK（debug版本）
+      # 步骤5：构建Android APK（自动接受许可，避免交互卡住）
       - name: Build APK
-        run: buildozer android debug
+        run: buildozer android debug --accept-licenses  # 关键：添加--accept-licenses接受Android许可
 
-      # 步骤7：上传构建好的APK作为产物（方便下载）
+      # 步骤6：上传构建好的APK（最新版Action，避免弃用）
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4  # 最新版，解决弃用问题
+        uses: actions/upload-artifact@v4
         with:
-          name: app-apk
-          path: bin/*.apk  # APK默认生成在bin目录下
+          name: app-release
+          path: bin/*.apk  # APK默认生成路径（若buildozer.spec有修改，需同步路径）
