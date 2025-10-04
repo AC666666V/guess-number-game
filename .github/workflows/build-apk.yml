@@ -1,4 +1,4 @@
-name: Build Android APK
+name: 构建猜数字游戏APK
 
 # 触发条件：推送或PR到主分支时运行
 on:
@@ -9,51 +9,51 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 基于Ubuntu最新环境构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 40  # 延长超时时间，避免构建中断
 
     steps:
-      # 步骤1：检出仓库代码（使用最新版Action）
-      - name: Checkout code
+      # 步骤1：检出仓库代码
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      # 步骤2：配置Python环境（3.9版本兼容性最佳）
-      - name: Set up Python
+      # 步骤2：配置Python环境（与项目依赖匹配）
+      - name: 配置Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
-      # 步骤3：安装系统级依赖（Android构建必需工具）
-      - name: Install system dependencies
+      # 步骤3：安装系统级依赖（Android构建必需）
+      - name: 安装系统依赖
         run: |
           sudo apt-get update
-          # 安装Java、压缩工具、SSL库等核心依赖
           sudo apt-get install -y openjdk-11-jdk zlib1g-dev libncurses5-dev \
             libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev \
-            wget unzip  # unzip用于解压Android SDK组件
+            wget unzip
 
-      # 步骤4：预安装Buildozer依赖（确保首次运行能正确初始化环境）
-      - name: Pre-install buildozer dependencies
+      # 步骤4：安装Python依赖（Buildozer、Cython、Kivy等）
+      - name: 安装Python依赖
         run: |
           python -m pip install --upgrade pip
-          pip install buildozer cython  # 提前安装核心工具
+          pip install buildozer==1.5.0 cython==0.29.36 kivy==2.2.1
 
-      # 步骤5：手动接受Android SDK许可证（关键：解决许可未接受问题）
-      - name: Accept Android SDK licenses
+      # 步骤5：初始化Android环境并接受许可证（解决许可问题）
+      - name: 初始化Android环境并接受许可
         run: |
-          # 先让Buildozer初始化Android环境（自动下载基础SDK）
-          buildozer android debug 2>/dev/null || true  # 忽略首次运行的错误，仅初始化环境
-          # 进入SDK的licenses目录，创建接受文件（强制接受所有许可）
+          # 预运行Buildozer，触发SDK基础文件下载
+          buildozer android debug 2>/dev/null || true
+          # 强制创建许可证文件
           mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
           echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c5" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
           echo -e "\nd56f5187479451eabf01fb78af6dfcb131a6481e" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
-      # 步骤6：正式构建APK（使用稳定的SDK版本，自动接受许可）
-      - name: Build APK
+      # 步骤6：正式构建APK
+      - name: 构建APK
         run: buildozer android debug --accept-licenses
 
-      # 步骤7：上传构建产物（APK文件）
-      - name: Upload APK artifact
+      # 步骤7：上传APK产物
+      - name: 上传APK
         uses: actions/upload-artifact@v4
         with:
-          name: guess-number-apk
-          path: bin/*.apk  # APK默认生成路径（与buildozer.spec配置一致）
+          name: 猜数字游戏APK
+          path: bin/*.apk
