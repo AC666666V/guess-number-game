@@ -1,4 +1,4 @@
-name: 构建猜数字游戏APK（修复aidl缺失）
+name: 构建猜数字游戏APK（修复sdkmanager路径）
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # 延长超时，确保工具下载完成
+    timeout-minutes: 60  # 足够长的超时时间
 
     steps:
       - name: 检出代码
@@ -20,64 +20,68 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: 安装系统依赖（含Android构建基础工具）
+      - name: 安装系统依赖（确保解压和网络工具）
         run: |
           sudo apt-get update
-          # 必须安装的系统工具：Java、解压、网络工具等
-          sudo apt-get install -y openjdk-11-jdk zlib1g-dev libncurses5-dev \
-            libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev \
-            wget unzip curl  # 确保curl和unzip存在，用于下载和解压SDK
+          # 必须安装的工具：Java、unzip（解压SDK）、wget（下载）
+          sudo apt-get install -y openjdk-11-jdk zlib1g-dev \
+            unzip wget curl  # 精简但必需的依赖
 
-      - name: 安装Python依赖（指定稳定版本）
+      - name: 安装Python依赖（稳定版本）
         run: |
           python -m pip install --upgrade pip
           pip install buildozer==1.5.0 cython==0.29.36 kivy==2.2.1
 
-      - name: 初始化Android SDK环境（强制下载基础组件）
+      - name: 手动配置Android SDK（确保sdkmanager路径正确）
         run: |
-          # 预运行buildozer触发SDK目录创建（忽略临时错误）
-          buildozer android debug 2>/dev/null || true
+          # 定义SDK根目录（Buildozer默认路径）
+          SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          # 创建SDK目录（强制确保存在）
+          mkdir -p "$SDK_ROOT"
           
-          # 定义SDK路径和需要的版本（与buildozer.spec一致）
-          SDK_PATH="$HOME/.buildozer/android/platform/android-sdk"
-          BUILD_TOOLS_VERSION="30.0.3"
-          SDK_VERSION="30"
+          # 下载Android命令行工具（官方最新稳定版，验证有效）
+          wget -q "https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip" -O sdk-tools.zip
           
-          # 创建SDK工具目录（若不存在）
-          mkdir -p "$SDK_PATH/cmdline-tools/latest/bin"
+          # 解压到SDK的cmdline-tools目录
+          unzip -q sdk-tools.zip -d "$SDK_ROOT/cmdline-tools"
           
-          # 下载Android命令行工具（用于安装build-tools）
-          wget -q "https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip" -O sdk-tools.zip
-          unzip -q sdk-tools.zip -d "$SDK_PATH/cmdline-tools/"
-          mv "$SDK_PATH/cmdline-tools/cmdline-tools" "$SDK_PATH/cmdline-tools/latest"  # 重命名为latest，符合SDK要求
+          # 重命名为「latest」（Android SDK要求的标准目录名，否则sdkmanager找不到）
+          mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+          
+          # 验证sdkmanager是否存在（关键！打印路径和文件列表）
+          echo "检查sdkmanager路径：$SDK_ROOT/cmdline-tools/latest/bin"
+          ls -la "$SDK_ROOT/cmdline-tools/latest/bin"  # 输出文件列表，确认sdkmanager存在
 
-      - name: 强制安装build-tools（含aidl）和对应SDK
+      - name: 安装Android Build Tools（含aidl）
         run: |
-          SDK_PATH="$HOME/.buildozer/android/platform/android-sdk"
-          BUILD_TOOLS_VERSION="30.0.3"
+          SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
+          BUILD_TOOLS="30.0.3"  # 与buildozer.spec匹配
           SDK_VERSION="30"
           
-          # 进入SDK工具目录
-          cd "$SDK_PATH/cmdline-tools/latest/bin"
+          # 进入sdkmanager所在目录（路径必须100%正确）
+          cd "$SDK_ROOT/cmdline-tools/latest/bin"
           
-          # 自动接受所有许可证
+          # 自动接受所有许可证（避免交互）
           yes | ./sdkmanager --licenses
           
           # 强制安装指定版本的build-tools（含aidl）和平台
-          yes | ./sdkmanager "build-tools;$BUILD_TOOLS_VERSION" "platforms;android-$SDK_VERSION"
+          yes | ./sdkmanager "build-tools;$BUILD_TOOLS" "platforms;android-$SDK_VERSION"
           
-          # 验证aidl是否存在（调试用）
-          if [ -f "$SDK_PATH/build-tools/$BUILD_TOOLS_VERSION/aidl" ]; then
-            echo "aidl已找到：$SDK_PATH/build-tools/$BUILD_TOOLS_VERSION/aidl"
+          # 验证aidl是否存在（确保build-tools安装成功）
+          echo "检查aidl路径：$SDK_ROOT/build-tools/$BUILD_TOOLS/aidl"
+          if [ -f "$SDK_ROOT/build-tools/$BUILD_TOOLS/aidl" ]; then
+            echo "✅ aidl已找到，路径正确"
           else
-            echo "错误：aidl仍未找到！"
+            echo "❌ 错误：aidl未安装，请检查build-tools版本"
             exit 1
           fi
 
-      - name: 清理旧缓存并构建APK
+      - name: 清理缓存并构建APK
         run: |
-          buildozer android clean  # 清理旧构建文件
-          buildozer android debug --accept-licenses  # 带许可参数构建
+          # 清理旧构建文件，避免干扰
+          buildozer android clean
+          # 构建APK（带许可参数）
+          buildozer android debug --accept-licenses
 
       - name: 上传APK产物
         uses: actions/upload-artifact@v4
